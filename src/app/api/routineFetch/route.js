@@ -2,6 +2,11 @@
 import { exportDataToDB } from '../../FetchScoreboardData'
 
 export async function GET(request) {
+  if (
+    request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`
+  ) {
+    return new Response('Unauthorized', { status: 401 })
+  }
   try {
     const data = await exportDataToDB()
     return new Response(JSON.stringify(data), {
