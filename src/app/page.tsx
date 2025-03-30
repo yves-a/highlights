@@ -18,7 +18,6 @@ const Home = () => {
         throw new Error('Failed to fetch data')
       }
       const fetchedData = await response.json()
-      console.log(fetchedData.formattedData)
       setNews(fetchedData.formattedData)
     }
     fetchNews()

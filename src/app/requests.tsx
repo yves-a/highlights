@@ -42,7 +42,6 @@ const NBAScoreboard = () => {
     // } catch (error) {
     //   setError(error as Error)
     // }
-    console.log('Pushing data to database')
     // const response = await fetch('/api/routineFetch')
   }
 
