@@ -20,6 +20,7 @@ const fetchYouTubeLink = async (query: string) => {
   return videoUrl
 }
 export const fetchData = async () => {
+  console.log('fetchData')
   const sql = neon(process.env.DATABASE_URL || '')
   // Will have to check the night before because every night at 1 am the data will be fetched
   const today = new Date().toLocaleDateString('en-US', {
@@ -40,6 +41,16 @@ export const fetchData = async () => {
   } catch (error) {
     console.error('Error checking data:', error)
   }
+
+  try {
+    await sql`
+            DELETE FROM games 
+            WHERE game_date < CURRENT_DATE - INTERVAL '1 day';
+            `
+  } catch (error) {
+    console.error('Error checking data:', error)
+  }
+
   const response = await fetch(
     'http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
   )
@@ -47,9 +58,11 @@ export const fetchData = async () => {
     throw new Error('Network response was not ok')
   }
   const result = await response.json()
-  const finalEvents = result.events.filter(
-    (event: any) => event.status.type.name === 'STATUS_FINAL'
-  )
+  console.log(result)
+  // const finalEvents = result.events.filter(
+  //   (event: any) => event.status.type.name === 'STATUS_FINAL'
+  // )
+  const finalEvents = result.events
   /*
    * home team logo = event.competitions[0].competitors[0].team.logo
    * home team name = event.competitions[0].competitors[0].team.displayName
@@ -94,7 +107,7 @@ export const fetchData = async () => {
       highlight_link: youtubeLinks[index],
     }
   })
-
+  console.log(formattedData, 'formattedData')
   return { formattedData }
 }
 
@@ -170,5 +183,23 @@ export const getVideoIds = async () => {
     return ids
   } catch (error) {
     console.error('Error fetching video IDs:', error)
+  }
+}
+
+export const showMeRecentGames = async () => {
+  const sql = neon(process.env.DATABASE_URL || '')
+  try {
+    const checkData = await sql`
+            SELECT * FROM games WHERE game_date >= CURRENT_DATE - INTERVAL '1 day';
+            `
+    if (checkData.length > 0) {
+      console.log('Data already exists for today')
+      return
+    } else {
+      console.log('Data does not exist for today')
+    }
+    console.log(checkData)
+  } catch (error) {
+    console.error('Error checking data:', error)
   }
 }
