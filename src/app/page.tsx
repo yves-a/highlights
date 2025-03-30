@@ -2,15 +2,27 @@
 import NBAScoreboard from './requests'
 import HighlightPlayer from './HighlightPlayer'
 import { Search, Menu, X, Bell, User } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 const Home = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
+  const [news, setNews] = useState([])
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen)
   }
-
+  useEffect(() => {
+    async function fetchNews() {
+      const response = await fetch('/api/fetchNews')
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+      const fetchedData = await response.json()
+      console.log(fetchedData.formattedData)
+      setNews(fetchedData.formattedData)
+    }
+    fetchNews()
+  }, [])
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header/Navigation */}
@@ -153,32 +165,47 @@ const Home = () => {
               Latest News
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((item) => (
-                <div
-                  key={item}
-                  className="bg-white rounded-lg shadow-md overflow-hidden"
-                >
-                  <div className="h-40 bg-gray-200"></div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">
-                      NBA News Headline
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      Sed do eiusmod tempor incididunt ut labore.
-                    </p>
-                    <div className="mt-4 flex justify-between items-center">
-                      <span className="text-xs text-gray-500">2 hours ago</span>
-                      <a
-                        href="#"
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        Read more
-                      </a>
+              {news.length &&
+                news.map(
+                  (item: {
+                    title: string
+                    description: string
+                    time: string
+                    link: string
+                    image: string
+                  }) => (
+                    <div
+                      key={item.title}
+                      className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full"
+                    >
+                      <div className="relative h-40">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          layout="fill"
+                          objectFit="contain"
+                        />
+                      </div>
+                      <div className="p-4 flex flex-col flex-grow">
+                        <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                        <p className="text-gray-600 text-sm flex-grow">
+                          {item.description}
+                        </p>
+                        <div className="mt-auto flex justify-between items-center">
+                          <span className="text-xs text-gray-500">
+                            {item.time}
+                          </span>
+                          <a
+                            href={item.link}
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            Read more
+                          </a>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  )
+                )}
             </div>
           </section>
         </div>
