@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react'
-import { fetchDataFromDB, exportDataToDB } from './FetchScoreboardData'
 import Image from 'next/image'
 
 // Scoreboard component - integrated directly into the page
@@ -15,7 +14,11 @@ const NBAScoreboard = () => {
       if (!isInitialLoad) {
         setRefreshing(true)
       }
-      const fetchedData = await fetchDataFromDB()
+      const response = await fetch('/api/fetchData')
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+      const fetchedData = await response.json()
       setData(fetchedData)
     } catch (error) {
       setError(error as Error)
@@ -26,19 +29,19 @@ const NBAScoreboard = () => {
   }
 
   const handlePushData = async () => {
-    try {
-      await exportDataToDB()
-      // Optional: Show success message using a more subtle approach
-      const successElement = document.getElementById('success-message')
-      if (successElement) {
-        successElement.classList.remove('hidden')
-        setTimeout(() => {
-          successElement.classList.add('hidden')
-        }, 3000)
-      }
-    } catch (error) {
-      setError(error as Error)
-    }
+    // try {
+    //   await exportDataToDB()
+    //   // Optional: Show success message using a more subtle approach
+    //   const successElement = document.getElementById('success-message')
+    //   if (successElement) {
+    //     successElement.classList.remove('hidden')
+    //     setTimeout(() => {
+    //       successElement.classList.add('hidden')
+    //     }, 3000)
+    //   }
+    // } catch (error) {
+    //   setError(error as Error)
+    // }
   }
 
   // Auto-fetch data when component mounts

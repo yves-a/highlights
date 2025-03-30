@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { neon } from '@neondatabase/serverless'
 
 // Add appropriate TypeScript declarations
 declare global {
@@ -23,21 +22,6 @@ const HighlightPlayer = () => {
   const [videoIds, setVideoIds] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const getVideoIds = async () => {
-    try {
-      const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
-      // Make a list of videoIds from the column highlight_link in the games table
-      const videoIds = await sql`SELECT highlight_link FROM games`
-      const ids = videoIds
-        .map((videoId) => videoId.highlight_link?.split('=')[1])
-        .filter(Boolean)
-      return ids
-    } catch (error) {
-      console.error('Error fetching video IDs:', error)
-      // Return some fallback video IDs in case of error
-      return ['QYlGT4ssDT0', 'Dtj0qxN01Kw', 'O6NrmCLOJfM']
-    }
-  }
   const playNextVideo = useCallback(() => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % videoIds.length)
   }, [videoIds.length])
@@ -45,8 +29,12 @@ const HighlightPlayer = () => {
   useEffect(() => {
     const fetchVideoIds = async () => {
       setIsLoading(true)
-      const ids = await getVideoIds()
-      setVideoIds(ids)
+      const response = await fetch('/api/fetchVideoIds')
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+      const fetchedData = await response.json()
+      setVideoIds(fetchedData)
       setIsLoading(false)
     }
     fetchVideoIds()

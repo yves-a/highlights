@@ -8,7 +8,7 @@ const getYouTubeSearchLink = (team1: string, team2: string, date: string) => {
 }
 
 const fetchYouTubeLink = async (query: string) => {
-  const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || ''
+  const apiKey = process.env.YOUTUBE_API_KEY || ''
   console.log(apiKey)
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${query}&key=${apiKey}`
@@ -20,7 +20,7 @@ const fetchYouTubeLink = async (query: string) => {
   return videoUrl
 }
 export const fetchData = async () => {
-  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
+  const sql = neon(process.env.DATABASE_URL || '')
   // Will have to check the night before because every night at 1 am the data will be fetched
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -99,7 +99,7 @@ export const fetchData = async () => {
 }
 
 export async function exportDataToDB() {
-  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
+  const sql = neon(process.env.DATABASE_URL || '')
 
   // First check if the table has any data with today's date
   // If it does, then return
@@ -152,9 +152,23 @@ export async function exportDataToDB() {
 }
 
 export async function fetchDataFromDB() {
-  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
+  const sql = neon(process.env.DATABASE_URL || '')
 
   const data = await sql`SELECT * FROM games;`
   console.log(data)
   return data
+}
+
+export const getVideoIds = async () => {
+  try {
+    const sql = neon(process.env.DATABASE_URL || '')
+    // Make a list of videoIds from the column highlight_link in the games table
+    const videoIds = await sql`SELECT highlight_link FROM games`
+    const ids = videoIds
+      .map((videoId) => videoId.highlight_link?.split('=')[1])
+      .filter(Boolean)
+    return ids
+  } catch (error) {
+    console.error('Error fetching video IDs:', error)
+  }
 }
