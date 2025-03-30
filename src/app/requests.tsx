@@ -42,6 +42,7 @@ const NBAScoreboard = () => {
     // } catch (error) {
     //   setError(error as Error)
     // }
+    // const response = await fetch('/api/routineFetch')
   }
 
   // Auto-fetch data when component mounts

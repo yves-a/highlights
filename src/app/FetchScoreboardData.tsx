@@ -9,14 +9,12 @@ const getYouTubeSearchLink = (team1: string, team2: string, date: string) => {
 
 const fetchYouTubeLink = async (query: string) => {
   const apiKey = process.env.YOUTUBE_API_KEY || ''
-  console.log(apiKey)
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${query}&key=${apiKey}`
   )
   const result = await response.json()
   const videoId = result.items[0]?.id?.videoId
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
-  console.log(videoUrl)
   return videoUrl
 }
 export const fetchData = async () => {
@@ -36,10 +34,19 @@ export const fetchData = async () => {
       console.log('Data already exists for today')
       return
     }
-    console.log(checkData)
   } catch (error) {
     console.error('Error checking data:', error)
   }
+
+  try {
+    await sql`
+            DELETE FROM games 
+            WHERE game_date < CURRENT_DATE - INTERVAL '1 day';
+            `
+  } catch (error) {
+    console.error('Error checking data:', error)
+  }
+
   const response = await fetch(
     'http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
   )
@@ -94,7 +101,6 @@ export const fetchData = async () => {
       highlight_link: youtubeLinks[index],
     }
   })
-
   return { formattedData }
 }
 
@@ -106,7 +112,6 @@ export async function exportDataToDB() {
   // If it doesn't, then fetch the data and insert it into the table
 
   const data = await fetchData()
-  console.log('data')
   if (!data) {
     return
   }
@@ -155,7 +160,6 @@ export async function fetchDataFromDB() {
   const sql = neon(process.env.DATABASE_URL || '')
 
   const data = await sql`SELECT * FROM games;`
-  console.log(data)
   return data
 }
 
@@ -170,5 +174,22 @@ export const getVideoIds = async () => {
     return ids
   } catch (error) {
     console.error('Error fetching video IDs:', error)
+  }
+}
+
+export const showMeRecentGames = async () => {
+  const sql = neon(process.env.DATABASE_URL || '')
+  try {
+    const checkData = await sql`
+            SELECT * FROM games WHERE game_date >= CURRENT_DATE - INTERVAL '1 day';
+            `
+    if (checkData.length > 0) {
+      console.log('Data already exists for today')
+      return
+    } else {
+      console.log('Data does not exist for today')
+    }
+  } catch (error) {
+    console.error('Error checking data:', error)
   }
 }
