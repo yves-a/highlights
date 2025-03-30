@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { neon } from '@neondatabase/serverless'
 const getYouTubeSearchLink = (team1: string, team2: string, date: string) => {
   const query = encodeURIComponent(
@@ -7,7 +8,7 @@ const getYouTubeSearchLink = (team1: string, team2: string, date: string) => {
 }
 
 const fetchYouTubeLink = async (query: string) => {
-  const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY
+  const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || ''
   console.log(apiKey)
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${query}&key=${apiKey}`
@@ -19,7 +20,7 @@ const fetchYouTubeLink = async (query: string) => {
   return videoUrl
 }
 export const fetchData = async () => {
-  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL)
+  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
   // Will have to check the night before because every night at 1 am the data will be fetched
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -36,7 +37,9 @@ export const fetchData = async () => {
       return
     }
     console.log(checkData)
-  } catch (error) {}
+  } catch (error) {
+    console.error('Error checking data:', error)
+  }
   const response = await fetch(
     'http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
   )
@@ -96,7 +99,7 @@ export const fetchData = async () => {
 }
 
 export async function exportDataToDB() {
-  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL)
+  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
 
   // First check if the table has any data with today's date
   // If it does, then return
@@ -149,7 +152,7 @@ export async function exportDataToDB() {
 }
 
 export async function fetchDataFromDB() {
-  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL)
+  const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
 
   const data = await sql`SELECT * FROM games;`
   console.log(data)

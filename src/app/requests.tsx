@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react'
-import { Search, Menu, X, Bell, User } from 'lucide-react'
 import { fetchDataFromDB, exportDataToDB } from './FetchScoreboardData'
+import Image from 'next/image'
 
 // Scoreboard component - integrated directly into the page
 const NBAScoreboard = () => {
-  const [data, setData] = useState([])
-  const [error, setError] = useState(null)
+  const [data, setData] = useState<any[]>([]) // Add type annotation to the data state
+  const [error, setError] = useState<Error | null>(null as Error | null) // Add type annotation to the error state
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -17,7 +18,7 @@ const NBAScoreboard = () => {
       const fetchedData = await fetchDataFromDB()
       setData(fetchedData)
     } catch (error) {
-      setError(error)
+      setError(error as Error)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -36,7 +37,7 @@ const NBAScoreboard = () => {
         }, 3000)
       }
     } catch (error) {
-      setError(error)
+      setError(error as Error)
     }
   }
 
@@ -56,7 +57,7 @@ const NBAScoreboard = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Today's Games</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Today&apos;s Games</h2>
         <div className="flex items-center space-x-2">
           {refreshing && (
             <span className="text-gray-500 text-sm">Refreshing...</span>
@@ -101,10 +102,11 @@ const NBAScoreboard = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-3">
-                    <img
+                    <Image
                       src={event.home_logo}
                       alt={`${event.home_team} logo`}
-                      className="w-8 h-8"
+                      width={30}
+                      height={30}
                     />
                     <span className="font-medium">{event.home_team}</span>
                   </div>
@@ -113,10 +115,11 @@ const NBAScoreboard = () => {
 
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <img
+                    <Image
                       src={event.away_logo}
                       alt={`${event.away_team} logo`}
-                      className="w-8 h-8"
+                      width={30}
+                      height={30}
                     />
                     <span className="font-medium">{event.away_team}</span>
                   </div>

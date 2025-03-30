@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { neon } from '@neondatabase/serverless'
 
 // Add appropriate TypeScript declarations
@@ -24,9 +25,9 @@ const HighlightPlayer = () => {
 
   const getVideoIds = async () => {
     try {
-      const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL)
+      const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL || '')
       // Make a list of videoIds from the column highlight_link in the games table
-      let videoIds = await sql`SELECT highlight_link FROM games`
+      const videoIds = await sql`SELECT highlight_link FROM games`
       const ids = videoIds
         .map((videoId) => videoId.highlight_link?.split('=')[1])
         .filter(Boolean)
@@ -37,6 +38,9 @@ const HighlightPlayer = () => {
       return ['QYlGT4ssDT0', 'Dtj0qxN01Kw', 'O6NrmCLOJfM']
     }
   }
+  const playNextVideo = useCallback(() => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % videoIds.length)
+  }, [videoIds.length])
 
   useEffect(() => {
     const fetchVideoIds = async () => {
@@ -65,15 +69,16 @@ const HighlightPlayer = () => {
     function initializePlayer() {
       if (!playerRef.current) return
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const newPlayer = new window.YT.Player(playerRef.current, {
         height: '360',
         width: '640',
         videoId: videoIds[0], // Load the first video initially
         events: {
-          onReady: (event) => {
+          onReady: (event: { target: React.SetStateAction<null> }) => {
             setPlayer(event.target)
           },
-          onStateChange: (event) => {
+          onStateChange: (event: { data: number }) => {
             if (event.data === window.YT.PlayerState.ENDED) {
               playNextVideo()
             }
@@ -81,20 +86,14 @@ const HighlightPlayer = () => {
         },
       })
     }
-  }, [videoIds])
+  }, [playNextVideo, videoIds])
 
   useEffect(() => {
     if (player && videoIds.length && currentIndex < videoIds.length) {
-      player.loadVideoById(videoIds[currentIndex])
-      player.playVideo() // Ensure the video plays automatically
+      ;(player as any).loadVideoById(videoIds[currentIndex])
+      ;(player as any).playVideo() // Ensure the video plays automatically
     }
   }, [currentIndex, player, videoIds])
-
-  const playNextVideo = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex + 1 >= videoIds.length ? 0 : prevIndex + 1
-    )
-  }
 
   const playPrevVideo = () => {
     setCurrentIndex((prevIndex) =>
