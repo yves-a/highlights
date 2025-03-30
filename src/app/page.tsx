@@ -164,7 +164,8 @@ const Home = () => {
               Latest News
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {news.length &&
+              {Array.isArray(news) &&
+                news.length > 0 &&
                 news.map(
                   (item: {
                     title: string
